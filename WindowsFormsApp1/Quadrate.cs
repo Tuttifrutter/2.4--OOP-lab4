@@ -4,7 +4,6 @@ using System.Windows.Forms;
 
 namespace Shapes
 {
-    class Quadrate : Shape { }
     [Serializable]
     class QuadrateDraw : Draw
     {

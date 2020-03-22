@@ -2,7 +2,6 @@
 using System;
 namespace Shapes
 {
-    public abstract class Shape { }
     [Serializable]
     public abstract class Draw
     {
@@ -10,6 +9,8 @@ namespace Shapes
         public int PenWidth;
         public string PenColor;
         public string LibFilePath;
+        public string DrawStr;
+        public Font DrawFont;
         public int[] arr;
         public bool filling;
         public Color GetPenColor()

@@ -4,7 +4,6 @@ using System.Windows.Forms;
 
 namespace Shapes
 {
-    class Ellipse : Shape {}
     [Serializable]
     class EllipseDraw : Draw
     {
@@ -14,7 +13,6 @@ namespace Shapes
             {
                 Width = PenWidth
             };
-            pen.Width = PenWidth;
             Graphics graph = Graphics.FromImage(bmp);
             graph.DrawEllipse(pen, arr[0], arr[1], arr[2], arr[3]);
             if (filling == true)

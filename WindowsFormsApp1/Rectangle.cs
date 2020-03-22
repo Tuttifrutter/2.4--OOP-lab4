@@ -3,8 +3,6 @@ using System;
 using System.Windows.Forms;
 namespace Shapes
 {
-    class Rectangle : Shape { }
-
     [Serializable]
     class RectangleDraw : Draw
     {

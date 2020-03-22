@@ -17,11 +17,19 @@ namespace WindowsFormsApp1
         {
             InitializeComponent();
             PenColor = "Black";
+            button12.Enabled = false;
+            button13.Enabled = false;
+            textBox2.Enabled = false;
+            button12.Visible = false;
+            button13.Visible = false;
+            textBox2.Visible = false;
         }
+
         List<Draw> ShapeList = new List<Draw>();
         static readonly int PictureBoxWidth = 634;
         static readonly int PictureBoxHeight = 355;
         Bitmap bmp = new Bitmap(PictureBoxWidth, PictureBoxHeight);
+
         private void ClearBtn_Click(object sender, EventArgs e)
         {
             DialogResult result = MessageBox.Show(
@@ -111,6 +119,8 @@ namespace WindowsFormsApp1
                 shape.arr = arr1;
                 shape.filling = fillflag;
                 shape.LibFilePath = LibFuncPath;
+                shape.DrawFont = FontString;
+                shape.DrawStr = PlugStr;
                 shape.DrawShape(ref bmp);
                 ShapeList.Add(shape);
                 pictureBox1.Image = bmp;
@@ -187,6 +197,16 @@ namespace WindowsFormsApp1
                 pictureBox1.Image = bmp;
             }
         }
+        private List<string> GetLibClassList(string LibPath)
+        {
+            Assembly asm = Assembly.LoadFrom(LibPath);
+            string LibName = Path.GetFileNameWithoutExtension(LibPath);
+            Type t = asm.GetType(LibName + ".Main", true, true);
+            Object obj = Activator.CreateInstance(t);
+            MethodInfo method = t.GetMethod("ReturnList");
+            Object PlugList = method.Invoke(obj, new object[] { });
+            return (List<string>)PlugList;
+        }
 
         private void PluginBtn_Click(object sender, EventArgs e)
         {
@@ -196,40 +216,77 @@ namespace WindowsFormsApp1
             };
             if (FBD.ShowDialog() == DialogResult.OK)
             {
-                
+                button12.Enabled = true;
+                button13.Enabled = true;
+                textBox2.Enabled = true;
+                button12.Visible = true;
+                button13.Visible = true;
+                textBox2.Visible = true;
+                List<string> PlugList = GetLibClassList(FBD.FileName);
+                int listSize = ((List<string>)PlugList).Count;
                 int top = 30;
-                Button button = new Button()
+                for (int i=0; i<= ((List<string>)PlugList).Count -1; i++)
                 {
-                    Left = 716,
-                    Top = top,
-                    Name = FBD.FileName,
-                    Width = 40,
-                    Height = 40,
-                    UseVisualStyleBackColor = true
-                };
-                PluginPath = FBD.FileName;
-                button.Click += ButtonOnClick;
-                   this.Controls.Add(button);
-               //     top += button.Height + 3;
+                    Button button = new Button()
+                    {
+                        Left = 716,
+                        Top = top,
+                        Name = PlugList[i],
+                        Width = 80,
+                        Height = 40,
+                        Text = PlugList[i].ToUpper(),
+                        UseVisualStyleBackColor = true
+                    };
 
+                    PluginPath = FBD.FileName;
+                    button.Click += ButtonOnClick;
+                    this.Controls.Add(button);
+                    top += button.Height + 3;
+                }
             }
         }
         public string PluginPath, LibFuncPath;
+
+        public Font FontString;
+        private void FontBtn_Click(object sender, EventArgs e)
+        {
+            FontDialog fontDialog = new FontDialog()
+            {
+                ShowColor = true
+            };
+            if(fontDialog.ShowDialog() == DialogResult.OK)
+            {
+                FontString = fontDialog.Font;
+            }
+        }
+
+        public string PlugStr;
+        private void StringDrawTB_TextChanged(object sender, EventArgs e)
+        {
+            PlugStr = textBox2.Text;
+        }
+
+        private void FileBtn_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog FBD = new OpenFileDialog()
+            {
+                Filter = "Image Files(*.PNG;*.BMP;*.JPG;*.GIF)|*.PNG;*.BMP;*.JPG;*.GIF|All files (*.*)|*.*"
+            };
+            if (FBD.ShowDialog() == DialogResult.OK)
+            {
+                LibFuncPath = FBD.FileName;
+            }
+        }
+
         private void ButtonOnClick(object sender, EventArgs eventArgs)
         {
             var button = (Button)sender;
-            if (button != null)
+            if (button != null && FontString != null && PlugStr != "" && PlugStr != null)
             {
-                Tag = "ShapesClassLibrary.ImgDraw";
-                OpenFileDialog FBD = new OpenFileDialog() 
-                {
-                    Filter= "Image Files(*.PNG;*.BMP;*.JPG;*.GIF)|*.PNG;*.BMP;*.JPG;*.GIF|All files (*.*)|*.*"
-                };
-                if (FBD.ShowDialog() == DialogResult.OK)
-                {
-                    LibFuncPath = FBD.FileName;
-                }
+                Tag = Path.GetFileNameWithoutExtension(PluginPath) + "." + button.Name;
             }
+            else
+                MessageBox.Show("Не все поля заполнены");
         }
 
         private void TextBox1_TextChanged(object sender, EventArgs e)

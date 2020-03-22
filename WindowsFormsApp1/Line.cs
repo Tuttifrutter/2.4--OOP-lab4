@@ -3,7 +3,6 @@ using System;
 using System.Windows.Forms;
 namespace Shapes
 {
-    class Line : Shape {}
     [Serializable]
     class LineDraw : Draw
     {

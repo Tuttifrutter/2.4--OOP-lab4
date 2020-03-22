@@ -5,7 +5,6 @@ using System.Windows.Forms;
 
 namespace Shapes
 {
-    class Triangle : Shape { }
     [Serializable]
     class TriangleDraw : Draw
     {
