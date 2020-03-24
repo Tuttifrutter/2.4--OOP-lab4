@@ -141,7 +141,7 @@ namespace WindowsFormsApp1
              IFormatter formatter = new BinaryFormatter();
              using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
              {
-                return (List<Draw>)formatter.Deserialize(stream);
+                    return (List<Draw>)formatter.Deserialize(stream);
              }
         }
 
