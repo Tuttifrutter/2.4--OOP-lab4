@@ -8,6 +8,8 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Reflection;
+using System.Security.Cryptography.Pkcs;
+using System.Security.Cryptography.X509Certificates;
 
 namespace WindowsFormsApp1
 {
@@ -16,7 +18,6 @@ namespace WindowsFormsApp1
         public Form1()
         {
             InitializeComponent();
-            PenColor = "Black";
             button12.Enabled = false;
             button13.Enabled = false;
             textBox2.Enabled = false;
@@ -79,8 +80,9 @@ namespace WindowsFormsApp1
             Tag = "Shapes.RectangleDraw";
         }
         
-        int  iMouseX, iMouseY,PenWidth;
-        string PenColor;
+        int  iMouseX, iMouseY;
+        int PenWidth = 1;
+        string PenColor = "Black";
         private void ColorBtn_Click(object sender, EventArgs e)
         {
             ColorDialog MyDialog = new ColorDialog
@@ -95,6 +97,7 @@ namespace WindowsFormsApp1
             }
         }
 
+        Assembly asm;
         private void PictureBox1_MouseUp(object sender, MouseEventArgs e)
         {
             int iMouseX2 = e.Location.X;
@@ -107,7 +110,6 @@ namespace WindowsFormsApp1
                 Draw shape;
                 if (((string)Tag).Contains("Library"))
                 {
-                    Assembly asm = Assembly.LoadFrom(PluginPath);
                     shape = (Draw)Activator.CreateInstance(asm.GetType((string)Tag, true, true));
                 }
                 else
@@ -118,27 +120,27 @@ namespace WindowsFormsApp1
                 shape.PenColor = PenColor;
                 shape.arr = arr1;
                 shape.filling = fillflag;
-                shape.LibFilePath = LibFuncPath;
-                shape.DrawFont = FontString;
+                shape.LibFilePath = LibFilePath;
+                shape.PlugPath = PluginPath;
+                shape.DrawFont = font;
                 shape.DrawStr = PlugStr;
+                shape.Name = (string)Tag;
                 shape.DrawShape(ref bmp);
                 ShapeList.Add(shape);
                 pictureBox1.Image = bmp;
             }
         }
 
-        public void SaveShapes(string filePath, List<Draw> objlist)
+        public void SaveShapes(IFormatter formatter, string filePath, List<Draw> objlist)
         {
-            IFormatter formatter = new BinaryFormatter();
             using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 formatter.Serialize(stream, objlist);
             }
         }
 
-        public List<Draw> LoadShapes(string filePath)
+        public List<Draw> LoadShapes(IFormatter formatter, string filePath)
         {
-             IFormatter formatter = new BinaryFormatter();
              using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
              {
                     return (List<Draw>)formatter.Deserialize(stream);
@@ -150,18 +152,21 @@ namespace WindowsFormsApp1
             SaveFileDialog FBD = new SaveFileDialog();
             if (FBD.ShowDialog() == DialogResult.OK)
             {
-                SaveShapes(FBD.FileName, ShapeList);
+                SaveShapes(new BinaryFormatter(), FBD.FileName, ShapeList);
             }
         }
 
         private void LoadBtn_Click(object sender, EventArgs e)
         {
-            OpenFileDialog FBD = new OpenFileDialog();
+            OpenFileDialog FBD = new OpenFileDialog() 
+            {
+            Filter = "Text(*.TXT)|*.TXT|All files (*.*)|*.*"
+            };
             if (FBD.ShowDialog() == DialogResult.OK)
             {
                 Graphics g = Graphics.FromImage(bmp);
                 g.Clear(Color.White);
-                ShapeList = LoadShapes(FBD.FileName);
+                ShapeList = LoadShapes(new BinaryFormatter(), FBD.FileName);
                 foreach(Draw i in ShapeList)
                 {
                     i.DrawShape(ref bmp);
@@ -169,7 +174,8 @@ namespace WindowsFormsApp1
                 pictureBox1.Image = bmp;
             }
         }
-        public bool fillflag;
+
+        public bool fillflag = false;
         private void FillCB_CheckedChanged(object sender, EventArgs e)
         {
             CheckBox checkBox = (CheckBox)sender;
@@ -199,7 +205,7 @@ namespace WindowsFormsApp1
         }
         private List<string> GetLibClassList(string LibPath)
         {
-            Assembly asm = Assembly.LoadFrom(LibPath);
+            asm = Assembly.LoadFrom(LibPath);
             string LibName = Path.GetFileNameWithoutExtension(LibPath);
             Type t = asm.GetType(LibName + ".Main", true, true);
             Object obj = Activator.CreateInstance(t);
@@ -222,7 +228,9 @@ namespace WindowsFormsApp1
                 button12.Visible = true;
                 button13.Visible = true;
                 textBox2.Visible = true;
+
                 List<string> PlugList = GetLibClassList(FBD.FileName);
+                PluginPath = FBD.FileName;
                 int listSize = ((List<string>)PlugList).Count;
                 int top = 30;
                 for (int i=0; i<= ((List<string>)PlugList).Count -1; i++)
@@ -238,29 +246,25 @@ namespace WindowsFormsApp1
                         UseVisualStyleBackColor = true
                     };
 
-                    PluginPath = FBD.FileName;
                     button.Click += ButtonOnClick;
                     this.Controls.Add(button);
                     top += button.Height + 3;
                 }
             }
         }
-        public string PluginPath, LibFuncPath;
+        public string PluginPath="", LibFilePath="";
 
-        public Font FontString;
+        public Font font = new Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
         private void FontBtn_Click(object sender, EventArgs e)
         {
-            FontDialog fontDialog = new FontDialog()
-            {
-                ShowColor = true
-            };
+            FontDialog fontDialog = new FontDialog();
             if(fontDialog.ShowDialog() == DialogResult.OK)
             {
-                FontString = fontDialog.Font;
+                font = fontDialog.Font;
             }
         }
 
-        public string PlugStr;
+        public string PlugStr="";
         private void StringDrawTB_TextChanged(object sender, EventArgs e)
         {
             PlugStr = textBox2.Text;
@@ -274,19 +278,47 @@ namespace WindowsFormsApp1
             };
             if (FBD.ShowDialog() == DialogResult.OK)
             {
-                LibFuncPath = FBD.FileName;
+                LibFilePath = FBD.FileName;
             }
+        }
+
+        private void BtnCorrect_Click(object sender, EventArgs e)
+        {
+            var cvt = new FontConverter();
+            Form2 f = new Form2();
+            for (int i = 0; i < ShapeList.Count; i++)
+                {
+                     String ArrStr = "";
+                     for (int j = 0; j <= ShapeList[i].arr.Length-1; j++)
+                     {
+                         ArrStr= ArrStr + ShapeList[i].arr[j].ToString() + ",";
+                     }
+                    
+                string FontDraw = cvt.ConvertToString(ShapeList[i].DrawFont);
+                f.dataGridView1.Rows.Add(ShapeList[i].Name, ShapeList[i].PenWidth,
+                                             ShapeList[i].PenColor, ArrStr,
+                                             ShapeList[i].filling, ShapeList[i].LibFilePath,
+                                             FontDraw, ShapeList[i].DrawStr, ShapeList[i].PlugPath);
+                }
+            f.ShowDialog();
+            if (f.GetCorrectShapeList != null)
+            {
+                ShapeList = f.GetCorrectShapeList;
+                Graphics g = Graphics.FromImage(bmp);
+                g.Clear(Color.White);
+                foreach (Draw i in ShapeList)
+                {
+                    i.DrawShape(ref bmp);
+                }
+                pictureBox1.Image = bmp;
+            }
+
         }
 
         private void ButtonOnClick(object sender, EventArgs eventArgs)
         {
             var button = (Button)sender;
-            if (button != null && FontString != null && PlugStr != "" && PlugStr != null)
-            {
                 Tag = Path.GetFileNameWithoutExtension(PluginPath) + "." + button.Name;
-            }
-            else
-                MessageBox.Show("Не все поля заполнены");
         }
 
         private void TextBox1_TextChanged(object sender, EventArgs e)

@@ -52,6 +52,7 @@
             this.button12 = new System.Windows.Forms.Button();
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.button13 = new System.Windows.Forms.Button();
+            this.btnCorrect = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -251,12 +252,23 @@
             this.button13.UseVisualStyleBackColor = true;
             this.button13.Click += new System.EventHandler(this.FileBtn_Click);
             // 
+            // btnCorrect
+            // 
+            this.btnCorrect.Location = new System.Drawing.Point(444, 2);
+            this.btnCorrect.Name = "btnCorrect";
+            this.btnCorrect.Size = new System.Drawing.Size(134, 25);
+            this.btnCorrect.TabIndex = 19;
+            this.btnCorrect.Text = "Редактирование";
+            this.btnCorrect.UseVisualStyleBackColor = true;
+            this.btnCorrect.Click += new System.EventHandler(this.BtnCorrect_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ButtonShadow;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.btnCorrect);
             this.Controls.Add(this.button13);
             this.Controls.Add(this.textBox2);
             this.Controls.Add(this.button12);
@@ -309,6 +321,7 @@
         private System.Windows.Forms.Button button12;
         private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.Button button13;
+        private System.Windows.Forms.Button btnCorrect;
     }
 }
 

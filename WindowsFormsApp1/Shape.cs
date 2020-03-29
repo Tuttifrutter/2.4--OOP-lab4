@@ -6,9 +6,11 @@ namespace Shapes
     public abstract class Draw
     {
         public abstract void DrawShape(ref Bitmap bmp);
+        public string Name;
         public int PenWidth;
         public string PenColor;
         public string LibFilePath;
+        public string PlugPath;
         public string DrawStr;
         public Font DrawFont;
         public int[] arr;
